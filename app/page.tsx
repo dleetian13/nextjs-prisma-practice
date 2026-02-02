@@ -1,19 +1,28 @@
+import TaskComponent from '@/components/form';
 import prisma from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
 export default async function Home() {
-  const posts = await prisma.post.findMany();
+  const tasks = await prisma.task.findMany();
+
+  const addTask = async (formData: FormData) => {
+    "use server"; // runs on the server
+
+    const title = formData.get("title");
+    await prisma.task.create({
+      data: {
+        title: title as string,
+      }
+    })
+
+    revalidatePath("/")
+  }
 
   return (
     <div>
-      {posts.length === 1 ? 'there are posts' : 'there are no posts'}
-      <ul>
-        {posts.map((post) => (
-          <li key={post.id}>
-            {post.title} -
-            {post.content}
-          </li>
-        ))}
-      </ul>
+      <h1>Todos Page</h1>
+
+      <TaskComponent tasks={tasks} />
     </div>
   );
 }
